@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pure Prime Number RSA Chat</title>
+    <title>Interactive Prime Crypto Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; font-family: 'Hind Vadodara', sans-serif; margin: 0; padding: 0; }
@@ -19,7 +19,7 @@
         .input-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
         .input-field { display: flex; flex-direction: column; }
         .input-field label { font-size: 10px; color: #0284c7; font-weight: 700; margin-bottom: 2px; }
-        input[type="text"] { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600; outline: none; }
+        input[type="text"], input[type="password"] { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600; outline: none; }
         
         .messages-container { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; }
         .message-card { background: #ffffff; border-radius: 10px; padding: 8px 12px; max-width: 90%; align-self: flex-start; border-left: 4px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -28,20 +28,22 @@
         .status-badge { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
         .badge-locked { background: #fee2e2; color: #dc2626; }
         .badge-unlocked { background: #dcfce7; color: #16a34a; }
-        .message-text { font-size: 12px; color: #0f172a; font-weight: 600; word-break: break-all; }
+        .message-text { font-size: 12px; color: #0f172a; font-weight: 600; word-break: break-all; font-family: monospace; }
+        .message-text.unlocked-text { font-family: 'Hind Vadodara', sans-serif; font-size: 13px; color: #047857; }
         
         .input-area { padding: 10px 12px; background: #ffffff; border-top: 2px solid #e2e8f0; display: flex; gap: 8px; }
         .message-input { flex: 1; padding: 8px 12px; border-radius: 20px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; font-size: 12px; outline: none; }
         .send-btn { background: #0284c7; color: white; border: none; padding: 0 16px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; }
     </style>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
 </head>
 <body>
 
 <div class="chat-app">
     <div class="app-header">
-        <h1>🔢 PRIME RSA CRYPTO CHAT</h1>
+        <h1>🔢 PRIME KEY DEMO CHAT</h1>
         <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા - ગણિત વિજ્ઞાન પ્રોજેક્ટ</div>
     </div>
 
@@ -51,15 +53,15 @@
                 <label>૧. તમારું નામ:</label>
                 <input type="text" id="username" placeholder="દા.ત. જશુભાઈ">
             </div>
-            
-            <div>
-                <label style="color:#16a34a; font-weight:bold;">૨. તમારી Public Key (અવિભાજ્ય સંખ્યા N):</label>
-                <div class="key-box" id="myPublicKeyDisplay">Prime Key બને છે...</div>
+
+            <div class="input-field">
+                <label style="color:#0284c7; font-weight:bold;">૨. મેસેજ મોકલવાની Prime Key (Lock કરવા):</label>
+                <input type="text" id="sendKey" placeholder="દા.ત. અવિભાજ્ય આંકડો 1009">
             </div>
 
             <div class="input-field">
-                <label style="color:#dc2626; font-weight:bold;">૩. સામે વાળાની Public Key (N આંકડા):</label>
-                <input type="text" id="receiverPublicKey" placeholder="સામેવાળાની Prime N Key પેસ્ટ કરો">
+                <label style="color:#dc2626; font-weight:bold;">૩. આવેલો મેસેજ વાંચવા માટેની Prime Key (Unlock કરવા):</label>
+                <input type="password" id="unlockKey" placeholder="અહીં સાચી કી નાખશો તો જ મેસેજ વંચાશે" oninput="renderAllMessages()">
             </div>
         </div>
     </div>
@@ -78,25 +80,11 @@
 
 <script>
     const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const chatTopic = "bolas_school_rsa_math_chat_2026";
-    
-    // Prime Numbers List for Demo RSA (P and Q)
-    const primes = [1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061];
-    
-    // Choose Random Primes P & Q
-    const p = primes[Math.floor(Math.random() * primes.length)];
-    let q = primes[Math.floor(Math.random() * primes.length)];
-    while(p === q) { q = primes[Math.floor(Math.random() * primes.length)]; }
-
-    const N = p * q;
-    const e = 65537;
-
-    document.getElementById('myPublicKeyDisplay').innerText = `N = ${N} (P: ${p}, Q: ${q})`;
-
+    const chatTopic = "bolas_school_manual_unlock_chat_2026";
     let rawMessages = [];
 
     client.on('connect', () => {
-        document.getElementById('statusText').innerText = "કનેક્શન સફળ! સામેવાળાની Prime N Key વાપરી મેસેજ કરો...";
+        document.getElementById('statusText').innerText = "કનેક્શન સફળ! મેસેજ મોકલીને લાઈવ ડેમો જુઓ...";
         client.subscribe(chatTopic);
     });
 
@@ -108,22 +96,9 @@
         } catch (err) {}
     });
 
-    function powerMod(base, exp, mod) {
-        let res = 1n;
-        base = BigInt(base) % BigInt(mod);
-        exp = BigInt(exp);
-        mod = BigInt(mod);
-        while (exp > 0n) {
-            if (exp % 2n === 1n) res = (res * base) % mod;
-            base = (base * base) % mod;
-            exp = exp / 2n;
-        }
-        return res;
-    }
-
     function sendMessage() {
         const user = document.getElementById('username').value.trim();
-        const receiverPubKeyInput = document.getElementById('receiverPublicKey').value.trim();
+        const key = document.getElementById('sendKey').value.trim();
         const msg = document.getElementById('messageInput').value.trim();
 
         if (!user || !msg) {
@@ -131,29 +106,17 @@
             return;
         }
 
-        if (!receiverPubKeyInput) {
-            alert('⚠️ સામે વાળાની Prime N Key નાખવી ફરજિયાત છે!');
+        if (!key) {
+            alert('⚠️ મેસેજ લોક કરવા માટે Prime Key નાખવી ફરજિયાત છે!');
             return;
         }
 
-        let match = receiverPubKeyInput.match(/\d+/);
-        if (!match) {
-            alert('સાચી Prime Key (N આંકડા) નાખો!');
-            return;
-        }
-        let targetN = match[0];
-
-        let encryptedArray = [];
-        for (let i = 0; i < msg.length; i++) {
-            let charCode = msg.charCodeAt(i);
-            let cipherChar = powerMod(charCode, e, targetN);
-            encryptedArray.push(cipherChar.toString());
-        }
+        // Convert message to Prime Encrypted Cipher
+        const encrypted = CryptoJS.AES.encrypt(msg, key).toString();
 
         const msgObj = {
             sender: user,
-            text: encryptedArray.join("-"),
-            targetN: targetN,
+            text: encrypted,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
@@ -162,6 +125,7 @@
     }
 
     function renderAllMessages() {
+        const uKey = document.getElementById('unlockKey').value.trim();
         const box = document.getElementById('msgBox');
         box.innerHTML = '';
 
@@ -171,30 +135,18 @@
         }
 
         rawMessages.forEach(item => {
-            let displayText = item.text;
+            let displayText = item.text; // Default: Shows Encrypted Cipher Text (કૂટ ભાષા)
             let isUnlocked = false;
 
-            if (item.targetN == N) {
+            if (uKey) {
                 try {
-                    let phi = BigInt(p - 1) * BigInt(q - 1);
-                    let d = 0n;
-                    for (let i = 1n; i < phi; i++) {
-                        if ((i * BigInt(e)) % phi === 1n) {
-                            d = i;
-                            break;
-                        }
+                    const bytes = CryptoJS.AES.decrypt(item.text, uKey);
+                    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                    if (decrypted) {
+                        displayText = decrypted;
+                        isUnlocked = true;
                     }
-
-                    let cipherCodes = item.text.split("-");
-                    let decryptedChars = "";
-                    cipherCodes.forEach(code => {
-                        let plainCode = powerMod(code, d, N);
-                        decryptedChars += String.fromCharCode(Number(plainCode));
-                    });
-
-                    displayText = decryptedChars;
-                    isUnlocked = true;
-                } catch (err) {}
+                } catch (e) {}
             }
 
             const card = document.createElement('div');
@@ -203,10 +155,10 @@
                 <div class="sender-tag">
                     <span>${item.sender} <small style="color:#64748b; font-weight:normal;">(${item.time || ''})</small></span>
                     <span class="status-badge ${isUnlocked ? 'badge-unlocked' : 'badge-locked'}">
-                        ${isUnlocked ? 'UNLOCKED 🔓 (Private Key P, Q)' : 'LOCKED 🔒 (Prime Encrypted)'}
+                        ${isUnlocked ? 'UNLOCKED 🔓' : 'LOCKED 🔒 (કૂટ ભાષા)'}
                     </span>
                 </div>
-                <div class="message-text">${displayText}</div>
+                <div class="message-text ${isUnlocked ? 'unlocked-text' : ''}">${displayText}</div>
             `;
             box.appendChild(card);
         });
