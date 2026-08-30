@@ -175,16 +175,10 @@
             font-size: 13px;
             cursor: pointer;
         }
-
-        .send-btn:hover {
-            background: #0369a1;
-        }
     </style>
 
-    <!-- Crypto & Firebase Ready Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
 
@@ -220,26 +214,17 @@
 </div>
 
 <script>
-    // Ready Firebase Configuration
-    const firebaseConfig = {
-        databaseURL: "https://cripto-chat-demo-default-rtdb.asia-southeast1.firebasedatabase.app/"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const chatRef = database.ref("messages");
+    // Free Public Open WebSocket Server
+    const socket = io("https://pie-socket-free-server.glitch.me");
 
     let rawMessages = [];
 
-    // Listen to incoming messages in real-time
-    chatRef.on("value", (snapshot) => {
-        rawMessages = [];
-        const data = snapshot.val();
-        if (data) {
-            Object.keys(data).forEach((key) => {
-                rawMessages.push(data[key]);
-            });
-        }
+    socket.on("connect", () => {
+        document.getElementById('msgBox').innerHTML = '<div style="text-align: center; color: #16a34a; font-size: 13px; margin-top: 20px;">કનેક્શન સફળ! મેસેજ મોકલો...</div>';
+    });
+
+    socket.on("chat-message", (data) => {
+        rawMessages.push(data);
         renderAllMessages();
     });
 
@@ -255,12 +240,13 @@
 
         const encryptedMsg = CryptoJS.AES.encrypt(msg, key).toString();
 
-        chatRef.push({
+        const msgObj = {
             sender: user,
             text: encryptedMsg,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        });
+        };
 
+        socket.emit("chat-message", msgObj);
         document.getElementById('messageInput').value = '';
     }
 
