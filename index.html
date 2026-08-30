@@ -45,7 +45,7 @@
         .send-btn { background: #0284c7; color: white; border: none; padding: 0 16px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 </head>
 <body>
 
@@ -119,8 +119,14 @@
 </div>
 
 <script>
-    const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const chatTopic = "bolas_school_custom_prime_rsa_2026";
+    // Updated Robust MQTT Server Connection
+    const client = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
+        clientId: 'rsa_math_' + Math.random().toString(16).substr(2, 8),
+        keepalive: 60,
+        reconnectPeriod: 2000
+    });
+
+    const chatTopic = "bolas_primary_school_rsa_chat_v2";
     
     let P = 61, Q = 53, N = 3233, Phi = 3120, e = 17, d = 2753;
     let rawMessages = [];
@@ -170,7 +176,7 @@
         Phi = (P - 1) * (Q - 1);
 
         if (gcd(eVal, Phi) !== 1) {
-            warningEl.innerText = "⚠️ e અને φ(N) સહ-અવિભાજ્ય (Coprime) હોવા જોઈશે!";
+            warningEl.innerText = "⚠️ e અને φ(N) સહ-અવિભાજ્ય હોવા જોઈશે!";
             document.getElementById('valStatus').innerText = "ભૂલ";
             document.getElementById('valStatus').style.color = "#dc2626";
             return;
@@ -179,7 +185,6 @@
         e = eVal;
         d = 0;
 
-        // Calculate Modular Multiplicative Inverse
         for (let i = 1; i < Phi; i++) {
             if ((i * e) % Phi === 1) {
                 d = i;
@@ -199,12 +204,17 @@
         renderAllMessages();
     }
 
-    // Initialize Math Parameters
     updateRSAFromInput();
 
     client.on('connect', () => {
-        document.getElementById('statusText').innerText = "કનેક્શન સફળ! RSA મેથ્સ ડેમો માટે તૈયાર છે...";
+        document.getElementById('statusText').innerText = "✅ સર્વર સાથે કનેક્શન સફળ! લાઈવ ચેટ ચાલુ છે...";
+        document.getElementById('statusText').style.color = "#16a34a";
         client.subscribe(chatTopic);
+    });
+
+    client.on('offline', () => {
+        document.getElementById('statusText').innerText = "⚠️ કનેક્શન ડિસ્કનેક્ટ થયું! ફરી કનેક્ટ થઈ રહ્યું છે...";
+        document.getElementById('statusText').style.color = "#dc2626";
     });
 
     client.on('message', (topic, message) => {
@@ -264,10 +274,12 @@
     function renderAllMessages() {
         const userD = document.getElementById('privateDInput').value.trim();
         const box = document.getElementById('msgBox');
+        
+        const statusEl = document.getElementById('statusText');
         box.innerHTML = '';
+        if (statusEl) box.appendChild(statusEl);
 
         if (rawMessages.length === 0) {
-            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 11px; margin-top: 10px;">મેસેજ મોકલીને લાઈવ ચેટ ચાલુ કરો...</div>';
             return;
         }
 
