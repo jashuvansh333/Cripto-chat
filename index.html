@@ -14,7 +14,7 @@
         .school-subtitle { font-size: 11px; color: #e0f2fe; margin-top: 2px; }
         
         .key-panel { background: #f8fafc; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; }
-        .key-box { background: #fe010110; border: 1px solid #0284c7; padding: 6px; border-radius: 6px; font-family: monospace; word-break: break-all; margin-top: 2px; color: #0284c7; font-weight: bold; font-size: 12px; }
+        .key-box { background: #e0f2fe; border: 1px solid #0284c7; padding: 6px; border-radius: 6px; font-family: monospace; word-break: break-all; margin-top: 2px; color: #0369a1; font-weight: bold; font-size: 11px; }
         
         .input-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
         .input-field { display: flex; flex-direction: column; }
@@ -41,7 +41,7 @@
 
 <div class="chat-app">
     <div class="app-header">
-        <h1>🔢 PURE PRIME RSA CHAT</h1>
+        <h1>🔢 PRIME RSA CRYPTO CHAT</h1>
         <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા - ગણિત વિજ્ઞાન પ્રોજેક્ટ</div>
     </div>
 
@@ -53,13 +53,13 @@
             </div>
             
             <div>
-                <label style="color:#16a34a; font-weight:bold;">૨. તમારી Public Key (અવિભાજ્ય આંકડા N):</label>
+                <label style="color:#16a34a; font-weight:bold;">૨. તમારી Public Key (અવિભાજ્ય સંખ્યા N):</label>
                 <div class="key-box" id="myPublicKeyDisplay">Prime Key બને છે...</div>
             </div>
 
             <div class="input-field">
                 <label style="color:#dc2626; font-weight:bold;">૩. સામે વાળાની Public Key (N આંકડા):</label>
-                <input type="text" id="receiverPublicKey" placeholder="સામેવાળાની Prime N Key નાખો">
+                <input type="text" id="receiverPublicKey" placeholder="સામેવાળાની Prime N Key પેસ્ટ કરો">
             </div>
         </div>
     </div>
@@ -78,7 +78,7 @@
 
 <script>
     const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const chatTopic = "bolas_school_pure_prime_chat_2026";
+    const chatTopic = "bolas_school_rsa_math_chat_2026";
     
     // Prime Numbers List for Demo RSA (P and Q)
     const primes = [1009, 1013, 1019, 1021, 1031, 1033, 1039, 1049, 1051, 1061];
@@ -88,15 +88,15 @@
     let q = primes[Math.floor(Math.random() * primes.length)];
     while(p === q) { q = primes[Math.floor(Math.random() * primes.length)]; }
 
-    const N = p * q; // Public Key Modulus (Pure Numbers)
-    const e = 65537; // Standard Public Exponent
+    const N = p * q;
+    const e = 65537;
 
-    document.getElementById('myPublicKeyDisplay').innerText = `N = ${N} (Prime P: ${p}, Q: ${q})`;
+    document.getElementById('myPublicKeyDisplay').innerText = `N = ${N} (P: ${p}, Q: ${q})`;
 
     let rawMessages = [];
 
     client.on('connect', () => {
-        document.getElementById('statusText').innerText = "કનેક્શન સફળ! અવિભાજ્ય આંકડાની Public Key વાપરી મેસેજ કરો...";
+        document.getElementById('statusText').innerText = "કનેક્શન સફળ! સામેવાળાની Prime N Key વાપરી મેસેજ કરો...";
         client.subscribe(chatTopic);
     });
 
@@ -108,7 +108,6 @@
         } catch (err) {}
     });
 
-    // Custom Modular Exponentiation for Prime Crypto
     function powerMod(base, exp, mod) {
         let res = 1n;
         base = BigInt(base) % BigInt(mod);
@@ -137,7 +136,6 @@
             return;
         }
 
-        // Extract N from input
         let match = receiverPubKeyInput.match(/\d+/);
         if (!match) {
             alert('સાચી Prime Key (N આંકડા) નાખો!');
@@ -145,7 +143,6 @@
         }
         let targetN = match[0];
 
-        // Encrypt character by character using Prime N Math
         let encryptedArray = [];
         for (let i = 0; i < msg.length; i++) {
             let charCode = msg.charCodeAt(i);
@@ -155,7 +152,7 @@
 
         const msgObj = {
             sender: user,
-            text: encryptedArray.join("-"), // Transmitted as Prime Encrypted Cipher Numbers
+            text: encryptedArray.join("-"),
             targetN: targetN,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
@@ -177,11 +174,9 @@
             let displayText = item.text;
             let isUnlocked = false;
 
-            // Decrypt using Private Key (P and Q)
             if (item.targetN == N) {
                 try {
                     let phi = BigInt(p - 1) * BigInt(q - 1);
-                    // Private Key Exponent D Calculation
                     let d = 0n;
                     for (let i = 1n; i < phi; i++) {
                         if ((i * BigInt(e)) % phi === 1n) {
@@ -208,7 +203,7 @@
                 <div class="sender-tag">
                     <span>${item.sender} <small style="color:#64748b; font-weight:normal;">(${item.time || ''})</small></span>
                     <span class="status-badge ${isUnlocked ? 'badge-unlocked' : 'badge-locked'}">
-                        ${isUnlocked ? 'UNLOCKED 🔓 (Private Key P, Q)' : 'LOCKED 🔒 (Prime Cipher Numbers)'}
+                        ${isUnlocked ? 'UNLOCKED 🔓 (Private Key P, Q)' : 'LOCKED 🔒 (Prime Encrypted)'}
                     </span>
                 </div>
                 <div class="message-text">${displayText}</div>
