@@ -3,71 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interactive Prime Crypto Chat</title>
+    <title>Full RSA Prime Math Cryptography Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; font-family: 'Hind Vadodara', sans-serif; margin: 0; padding: 0; }
         body { background-color: #f1f5f9; color: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 12px; }
-        .chat-app { width: 100%; max-width: 500px; height: 95vh; background: #ffffff; border-radius: 16px; border: 2px solid #0284c7; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        .app-header { background: #0284c7; color: #ffffff; padding: 12px; text-align: center; }
-        .app-header h1 { font-size: 17px; font-weight: 700; }
-        .school-subtitle { font-size: 11px; color: #e0f2fe; margin-top: 2px; }
+        .chat-app { width: 100%; max-width: 520px; height: 96vh; background: #ffffff; border-radius: 16px; border: 2px solid #0284c7; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .app-header { background: #0284c7; color: #ffffff; padding: 10px; text-align: center; }
+        .app-header h1 { font-size: 16px; font-weight: 700; }
+        .school-subtitle { font-size: 11px; color: #e0f2fe; margin-top: 1px; }
         
-        .key-panel { background: #f8fafc; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; }
-        .key-box { background: #e0f2fe; border: 1px solid #0284c7; padding: 6px; border-radius: 6px; font-family: monospace; word-break: break-all; margin-top: 2px; color: #0369a1; font-weight: bold; font-size: 11px; }
+        .math-box { background: #f0f9ff; border-bottom: 2px solid #0284c7; padding: 8px 12px; font-size: 11px; }
+        .math-title { font-weight: bold; color: #0369a1; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #bae6fd; }
+        .calc-item { font-size: 10px; font-weight: 600; color: #0f172a; }
+        .calc-item span { color: #0284c7; font-weight: bold; }
         
-        .input-group { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+        .key-panel { background: #f8fafc; padding: 8px 12px; border-bottom: 2px solid #e2e8f0; font-size: 11px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
         .input-field { display: flex; flex-direction: column; }
-        .input-field label { font-size: 10px; color: #0284c7; font-weight: 700; margin-bottom: 2px; }
-        input[type="text"], input[type="password"] { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600; outline: none; }
+        .input-field label { font-size: 10px; color: #0284c7; font-weight: 700; margin-bottom: 1px; }
+        input[type="text"], input[type="number"], input[type="password"] { background: #ffffff; border: 1px solid #cbd5e1; color: #0f172a; padding: 5px; border-radius: 6px; font-size: 11px; font-weight: 600; outline: none; }
         
-        .messages-container { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; }
-        .message-card { background: #ffffff; border-radius: 10px; padding: 8px 12px; max-width: 90%; align-self: flex-start; border-left: 4px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .messages-container { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #f1f5f9; }
+        .message-card { background: #ffffff; border-radius: 10px; padding: 8px 12px; max-width: 92%; align-self: flex-start; border-left: 4px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .message-card.unlocked { border-left: 4px solid #10b981; background: #f0fdf4; }
         .sender-tag { font-size: 10px; color: #475569; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; }
         .status-badge { font-size: 9px; padding: 2px 5px; border-radius: 4px; font-weight: 700; }
         .badge-locked { background: #fee2e2; color: #dc2626; }
         .badge-unlocked { background: #dcfce7; color: #16a34a; }
-        .message-text { font-size: 12px; color: #0f172a; font-weight: 600; word-break: break-all; font-family: monospace; }
+        .message-text { font-size: 11px; color: #0f172a; font-weight: 600; word-break: break-all; font-family: monospace; }
         .message-text.unlocked-text { font-family: 'Hind Vadodara', sans-serif; font-size: 13px; color: #047857; }
         
-        .input-area { padding: 10px 12px; background: #ffffff; border-top: 2px solid #e2e8f0; display: flex; gap: 8px; }
+        .input-area { padding: 8px 12px; background: #ffffff; border-top: 2px solid #e2e8f0; display: flex; gap: 8px; }
         .message-input { flex: 1; padding: 8px 12px; border-radius: 20px; background: #f8fafc; border: 1px solid #cbd5e1; color: #0f172a; font-size: 12px; outline: none; }
         .send-btn { background: #0284c7; color: white; border: none; padding: 0 16px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; }
     </style>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
 </head>
 <body>
 
 <div class="chat-app">
     <div class="app-header">
-        <h1>🔢 PRIME KEY DEMO CHAT</h1>
+        <h1>🔢 FULL RSA PRIME CRYPTOGRAPHY</h1>
         <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા - ગણિત વિજ્ઞાન પ્રોજેક્ટ</div>
+    </div>
+
+    <!-- Math Calculation Display Box -->
+    <div class="math-box">
+        <div class="math-title">
+            <span>📐 RSA ગણિતીય ગણતરી બોક્સ:</span>
+            <button onclick="generateRandomPrimes()" style="background:#0284c7; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:9px; cursor:pointer;">નવા Prime પસંદ કરો</button>
+        </div>
+        <div class="calc-grid">
+            <div class="calc-item">અવિભાજ્ય P = <span id="valP">61</span></div>
+            <div class="calc-item">અવિભાજ્ય Q = <span id="valQ">53</span></div>
+            <div class="calc-item">Public Key (N = P×Q) = <span id="valN">3233</span></div>
+            <div class="calc-item">Euler Phi φ(N) = <span id="valPhi">3120</span></div>
+            <div class="calc-item">Public Encrypt Key (e) = <span id="valE">17</span></div>
+            <div class="calc-item">Private Decrypt Key (d) = <span id="valD">2753</span></div>
+        </div>
     </div>
 
     <div class="key-panel">
         <div class="input-group">
-            <div class="input-field">
-                <label>૧. તમારું નામ:</label>
-                <input type="text" id="username" placeholder="દા.ત. જશુભાઈ">
+            <div style="display:flex; gap:6px;">
+                <div class="input-field" style="flex:1;">
+                    <label>૧. તમારું નામ:</label>
+                    <input type="text" id="username" placeholder="દા.ત. જશુભાઈ">
+                </div>
+                <div class="input-field" style="flex:1;">
+                    <label style="color:#0284c7;">૨. Public Key (N):</label>
+                    <input type="text" id="publicNInput" placeholder="સામે વાળાનો N આંકડો">
+                </div>
             </div>
 
             <div class="input-field">
-                <label style="color:#0284c7; font-weight:bold;">૨. મેસેજ મોકલવાની Prime Key (Lock કરવા):</label>
-                <input type="text" id="sendKey" placeholder="દા.ત. અવિભાજ્ય આંકડો 1009">
-            </div>
-
-            <div class="input-field">
-                <label style="color:#dc2626; font-weight:bold;">૩. આવેલો મેસેજ વાંચવા માટેની Prime Key (Unlock કરવા):</label>
-                <input type="password" id="unlockKey" placeholder="અહીં સાચી કી નાખશો તો જ મેસેજ વંચાશે" oninput="renderAllMessages()">
+                <label style="color:#dc2626;">૩. આવેલો મેસેજ વાંચવા માટે Private Decrypt Key (d) નાખો:</label>
+                <input type="password" id="privateDInput" placeholder="ગણતરી કરેલી Private Key d નાખો" oninput="renderAllMessages()">
             </div>
         </div>
     </div>
 
     <div class="messages-container" id="msgBox">
-        <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 10px;" id="statusText">
+        <div style="text-align: center; color: #64748b; font-size: 11px; margin-top: 10px;" id="statusText">
             સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
         </div>
     </div>
@@ -80,11 +100,53 @@
 
 <script>
     const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const chatTopic = "bolas_school_manual_unlock_chat_2026";
+    const chatTopic = "bolas_school_full_rsa_math_2026";
+    
+    let P = 61, Q = 53, N = 3233, Phi = 3120, e = 17, d = 2753;
     let rawMessages = [];
 
+    // Prime Pair List for RSA Demonstration
+    const primePairs = [
+        {p: 61, q: 53, e: 17},
+        {p: 61, q: 47, e: 17},
+        {p: 53, q: 47, e: 17},
+        {p: 71, q: 59, e: 17}
+    ];
+
+    function calculateRSA(pVal, qVal, eVal) {
+        P = pVal;
+        Q = qVal;
+        N = P * Q;
+        Phi = (P - 1) * (Q - 1);
+        e = eVal;
+
+        // Calculate Modular Multiplicative Inverse (Private Key d)
+        for (let i = 1; i < Phi; i++) {
+            if ((i * e) % Phi === 1) {
+                d = i;
+                break;
+            }
+        }
+
+        document.getElementById('valP').innerText = P;
+        document.getElementById('valQ').innerText = Q;
+        document.getElementById('valN').innerText = N;
+        document.getElementById('valPhi').innerText = Phi;
+        document.getElementById('valE').innerText = e;
+        document.getElementById('valD').innerText = d;
+        document.getElementById('publicNInput').value = N;
+    }
+
+    function generateRandomPrimes() {
+        const pair = primePairs[Math.floor(Math.random() * primePairs.length)];
+        calculateRSA(pair.p, pair.q, pair.e);
+    }
+
+    // Initialize Math Parameters
+    calculateRSA(P, Q, e);
+
     client.on('connect', () => {
-        document.getElementById('statusText').innerText = "કનેક્શન સફળ! મેસેજ મોકલીને લાઈવ ડેમો જુઓ...";
+        document.getElementById('statusText').innerText = "કનેક્શન સફળ! RSA મેથ્સ ડેમો માટે તૈયાર છે...";
         client.subscribe(chatTopic);
     });
 
@@ -96,27 +158,47 @@
         } catch (err) {}
     });
 
+    // Custom Power Mod for Big Numbers
+    function powerMod(base, exp, mod) {
+        let res = 1n;
+        base = BigInt(base) % BigInt(mod);
+        exp = BigInt(exp);
+        mod = BigInt(mod);
+        while (exp > 0n) {
+            if (exp % 2n === 1n) res = (res * base) % mod;
+            base = (base * base) % mod;
+            exp = exp / 2n;
+        }
+        return res;
+    }
+
     function sendMessage() {
         const user = document.getElementById('username').value.trim();
-        const key = document.getElementById('sendKey').value.trim();
+        const targetN = document.getElementById('publicNInput').value.trim();
         const msg = document.getElementById('messageInput').value.trim();
 
         if (!user || !msg) {
-            alert('કૃપા કરીને નામ અને મેસેજ લખો!');
+            alert('કૃપા કરીને તમારું નામ અને મેસેજ લખો!');
             return;
         }
 
-        if (!key) {
-            alert('⚠️ મેસેજ લોક કરવા માટે Prime Key નાખવી ફરજિયાત છે!');
+        if (!targetN) {
+            alert('⚠️ મેસેજ લોક કરવા માટે Public Key (N) બોક્સમાં હોવી જરૂરી છે!');
             return;
         }
 
-        // Convert message to Prime Encrypted Cipher
-        const encrypted = CryptoJS.AES.encrypt(msg, key).toString();
+        // RSA Encryption: Cipher = (Plaintext^e) mod N
+        let encryptedCodes = [];
+        for (let i = 0; i < msg.length; i++) {
+            let charCode = msg.charCodeAt(i);
+            let cipherChar = powerMod(charCode, e, targetN);
+            encryptedCodes.push(cipherChar.toString());
+        }
 
         const msgObj = {
             sender: user,
-            text: encrypted,
+            cipherText: encryptedCodes.join("-"),
+            usedN: targetN,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
@@ -125,25 +207,31 @@
     }
 
     function renderAllMessages() {
-        const uKey = document.getElementById('unlockKey').value.trim();
+        const userD = document.getElementById('privateDInput').value.trim();
         const box = document.getElementById('msgBox');
         box.innerHTML = '';
 
         if (rawMessages.length === 0) {
-            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 10px;">મેસેજ મોકલીને લાઈવ ચેટ ચાલુ કરો...</div>';
+            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 11px; margin-top: 10px;">મેસેજ મોકલીને લાઈવ ચેટ ચાલુ કરો...</div>';
             return;
         }
 
         rawMessages.forEach(item => {
-            let displayText = item.text; // Default: Shows Encrypted Cipher Text (કૂટ ભાષા)
+            let displayText = `[RSA Cipher Codes]: ${item.cipherText}`;
             let isUnlocked = false;
 
-            if (uKey) {
+            // RSA Decryption: Plaintext = (Cipher^d) mod N
+            if (userD) {
                 try {
-                    const bytes = CryptoJS.AES.decrypt(item.text, uKey);
-                    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
-                    if (decrypted) {
-                        displayText = decrypted;
+                    let cipherArray = item.cipherText.split("-");
+                    let decryptedChars = "";
+                    cipherArray.forEach(code => {
+                        let plainCode = powerMod(code, userD, item.usedN);
+                        decryptedChars += String.fromCharCode(Number(plainCode));
+                    });
+
+                    if (decryptedChars && !decryptedChars.includes("\0")) {
+                        displayText = decryptedChars;
                         isUnlocked = true;
                     }
                 } catch (e) {}
@@ -155,7 +243,7 @@
                 <div class="sender-tag">
                     <span>${item.sender} <small style="color:#64748b; font-weight:normal;">(${item.time || ''})</small></span>
                     <span class="status-badge ${isUnlocked ? 'badge-unlocked' : 'badge-locked'}">
-                        ${isUnlocked ? 'UNLOCKED 🔓' : 'LOCKED 🔒 (કૂટ ભાષા)'}
+                        ${isUnlocked ? 'UNLOCKED 🔓 (d Key Valid)' : 'LOCKED 🔒 (RSA Encrypted)'}
                     </span>
                 </div>
                 <div class="message-text ${isUnlocked ? 'unlocked-text' : ''}">${displayText}</div>
