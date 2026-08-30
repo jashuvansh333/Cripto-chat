@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Math & Digital Security Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --card-bg: #151c2c;
+            --accent-blue: #0ea5e9;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-light: #f8fafc;
+            --border-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Hind Vadodara', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: linear-gradient(135deg, #070a11 0%, #0f172a 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .chat-app {
+            width: 100%;
+            max-width: 480px;
+            height: 94vh;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 10px 30px rgba(14, 165, 233, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .app-header {
+            background: linear-gradient(90deg, #0f172a, #1e293b);
+            padding: 12px 16px;
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .app-header h1 {
+            font-family: 'Orbitron', 'Hind Vadodara', sans-serif;
+            font-size: 16px;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .school-subtitle {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .config-panel {
+            background: #0f172a;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-field {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            font-size: 10px;
+            color: #38bdf8;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        input[type="text"], input[type="password"] {
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: var(--accent-blue);
+        }
+
+        .messages-container {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(11, 15, 25, 0.6);
+        }
+
+        .message-card {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 8px 12px;
+            max-width: 85%;
+            align-self: flex-start;
+            border-left: 3px solid var(--accent-red);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .message-card.unlocked {
+            border-left: 3px solid var(--accent-green);
+            background: #0f291e;
+        }
+
+        .sender-tag {
+            font-size: 10px;
+            color: #f59e0b;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .status-badge {
+            font-size: 9px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .badge-locked { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+        .badge-unlocked { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+
+        .message-text {
+            font-size: 13px;
+            color: #f1f5f9;
+            word-break: break-all;
+        }
+
+        .input-area {
+            padding: 10px 12px;
+            background: #0f172a;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #0284c7, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 0 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+        }
+    </style>
+
+    <!-- CryptoJS & PubNub Libs (Free Public Server) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+</head>
+<body>
+
+<div class="chat-app">
+    <div class="app-header">
+        <h1>🔒 CRYPTO SECURITY CHAT</h1>
+        <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા - ગણિત વિજ્ઞાન પ્રોજેક્ટ</div>
+    </div>
+
+    <div class="config-panel">
+        <div class="input-group">
+            <div class="input-field">
+                <label>તમારું નામ (User Name):</label>
+                <input type="text" id="username" placeholder="દા.ત. જશુભાઈ">
+            </div>
+            <div class="input-field">
+                <label>Secret Key (મેસેજ પિન):</label>
+                <input type="password" id="secretKey" placeholder="દા.ત. 1234" oninput="renderAllMessages()">
+            </div>
+        </div>
+    </div>
+
+    <div class="messages-container" id="msgBox">
+        <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">
+            લાઈવ સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
+        </div>
+    </div>
+
+    <div class="input-area">
+        <input type="text" id="messageInput" class="message-input" placeholder="મેસેજ લખો..." onkeypress="if(event.key==='Enter') sendMessage()">
+        <button class="send-btn" onclick="sendMessage()">Send 🚀</button>
+    </div>
+</div>
+
+<script>
+    // Ready-to-use Free Public Realtime Server
+    const pubnub = new PubNub({
+        subscribeKey: "sub-c-43a0e3f8-8422-11e9-a038-16e537e24683",
+        publishKey: "pub-c-69f8fa5d-9b16-43dd-96e0-25e8dd415b3a",
+        userId: "user_" + Math.random().toString(36).substring(7)
+    });
+
+    let rawMessages = [];
+
+    pubnub.subscribe({ channels: ['bolas_school_crypto_chat'] });
+
+    pubnub.addListener({
+        message: function(event) {
+            rawMessages.push(event.message);
+            renderAllMessages();
+        }
+    });
+
+    function sendMessage() {
+        const user = document.getElementById('username').value.trim();
+        const key = document.getElementById('secretKey').value.trim();
+        const msg = document.getElementById('messageInput').value.trim();
+
+        if (!user || !key || !msg) {
+            alert('કૃપા કરીને નામ, Secret Key અને મેસેજ લખો!');
+            return;
+        }
+
+        // AES Encryption
+        const encryptedMsg = CryptoJS.AES.encrypt(msg, key).toString();
+
+        pubnub.publish({
+            channel: 'bolas_school_crypto_chat',
+            message: {
+                sender: user,
+                text: encryptedMsg,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+        });
+
+        document.getElementById('messageInput').value = '';
+    }
+
+    function renderAllMessages() {
+        const key = document.getElementById('secretKey').value.trim();
+        const box = document.getElementById('msgBox');
+        box.innerHTML = '';
+
+        if (rawMessages.length === 0) {
+            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">મેસેજ મોકલીને લાઈવ ચેટ ચાલુ કરો...</div>';
+            return;
+        }
+
+        rawMessages.forEach(item => {
+            let displayText = item.text;
+            let isUnlocked = false;
+
+            if (key) {
+                try {
+                    const bytes = CryptoJS.AES.decrypt(item.text, key);
+                    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+                    if (decrypted) {
+                        displayText = decrypted;
+                        isUnlocked = true;
+                    }
+                } catch (e) {}
+            }
+
+            const card = document.createElement('div');
+            card.className = `message-card ${isUnlocked ? 'unlocked' : ''}`;
+            card.innerHTML = `
+                <div class="sender-tag">
+                    <span>${item.sender} <small style="color:#64748b; font-weight:normal;">(${item.time || ''})</small></span>
+                    <span class="status-badge ${isUnlocked ? 'badge-unlocked' : 'badge-locked'}">
+                        ${isUnlocked ? 'UNLOCKED 🔓' : 'LOCKED 🔒'}
+                    </span>
+                </div>
+                <div class="message-text">${displayText}</div>
+            `;
+            box.appendChild(card);
+        });
+
+        box.scrollTop = box.scrollHeight;
+    }
+</script>
+
+</body>
+</html>
