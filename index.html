@@ -108,10 +108,6 @@
             outline: none;
         }
 
-        input:focus {
-            border-color: var(--accent-blue);
-        }
-
         .messages-container {
             flex: 1;
             padding: 12px;
@@ -193,9 +189,9 @@
         }
     </style>
 
-    <!-- CryptoJS & PubNub Libs (Free Public Server) -->
+    <!-- CryptoJS & PeerJS Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.2/dist/peerjs.min.js"></script>
 </head>
 <body>
 
@@ -220,7 +216,7 @@
 
     <div class="messages-container" id="msgBox">
         <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">
-            લાઈવ સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
+            લાઈવ ચેટ કનેક્ટ થઈ રહ્યું છે...
         </div>
     </div>
 
@@ -231,23 +227,34 @@
 </div>
 
 <script>
-    // Ready-to-use Free Public Realtime Server
-    const pubnub = new PubNub({
-        subscribeKey: "sub-c-43a0e3f8-8422-11e9-a038-16e537e24683",
-        publishKey: "pub-c-69f8fa5d-9b16-43dd-96e0-25e8dd415b3a",
-        userId: "user_" + Math.random().toString(36).substring(7)
-    });
-
+    const peer = new Peer('bolas_school_room_12345');
+    let connections = [];
     let rawMessages = [];
 
-    pubnub.subscribe({ channels: ['bolas_school_crypto_chat'] });
-
-    pubnub.addListener({
-        message: function(event) {
-            rawMessages.push(event.message);
-            renderAllMessages();
-        }
+    peer.on('open', function(id) {
+        console.log('Connected to server');
     });
+
+    peer.on('error', function(err) {
+        // If room exists, connect as client
+        const clientPeer = new Peer();
+        clientPeer.on('open', function() {
+            const conn = clientPeer.connect('bolas_school_room_12345');
+            setupConnection(conn);
+        });
+    });
+
+    peer.on('connection', function(conn) {
+        connections.push(conn);
+        setupConnection(conn);
+    });
+
+    function setupConnection(conn) {
+        conn.on('data', function(data) {
+            rawMessages.push(data);
+            renderAllMessages();
+        });
+    }
 
     function sendMessage() {
         const user = document.getElementById('username').value.trim();
@@ -259,17 +266,19 @@
             return;
         }
 
-        // AES Encryption
         const encryptedMsg = CryptoJS.AES.encrypt(msg, key).toString();
 
-        pubnub.publish({
-            channel: 'bolas_school_crypto_chat',
-            message: {
-                sender: user,
-                text: encryptedMsg,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            }
-        });
+        const dataObj = {
+            sender: user,
+            text: encryptedMsg,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+
+        rawMessages.push(dataObj);
+        renderAllMessages();
+
+        // Broadcast to connected devices
+        connections.forEach(c => c.send(dataObj));
 
         document.getElementById('messageInput').value = '';
     }
