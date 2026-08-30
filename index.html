@@ -6,179 +6,32 @@
     <title>Crypto Math & Digital Security Chat</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Hind Vadodara', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background-color: #f1f5f9;
-            color: #0f172a;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 12px;
-        }
-
-        .chat-app {
-            width: 100%;
-            max-width: 480px;
-            height: 94vh;
-            background: #ffffff;
-            border-radius: 16px;
-            border: 2px solid #0284c7;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .app-header {
-            background: #0284c7;
-            color: #ffffff;
-            padding: 14px;
-            text-align: center;
-        }
-
-        .app-header h1 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .school-subtitle {
-            font-size: 12px;
-            color: #e0f2fe;
-            margin-top: 2px;
-        }
-
-        .config-panel {
-            background: #f8fafc;
-            padding: 12px;
-            border-bottom: 2px solid #e2e8f0;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-field {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .input-field label {
-            font-size: 11px;
-            color: #0284c7;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        input[type="text"], input[type="password"] {
-            background: #ffffff;
-            border: 2px solid #cbd5e1;
-            color: #0f172a;
-            padding: 8px 10px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #0284c7;
-        }
-
-        .messages-container {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            background: #f1f5f9;
-        }
-
-        .message-card {
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 10px 12px;
-            max-width: 85%;
-            align-self: flex-start;
-            border-left: 4px solid #ef4444;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-
-        .message-card.unlocked {
-            border-left: 4px solid #10b981;
-            background: #f0fdf4;
-        }
-
-        .sender-tag {
-            font-size: 11px;
-            color: #475569;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-            gap: 10px;
-        }
-
-        .status-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
-
+        * { box-sizing: border-box; font-family: 'Hind Vadodara', sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f1f5f9; color: #0f172a; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 12px; }
+        .chat-app { width: 100%; max-width: 480px; height: 94vh; background: #ffffff; border-radius: 16px; border: 2px solid #0284c7; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .app-header { background: #0284c7; color: #ffffff; padding: 14px; text-align: center; }
+        .app-header h1 { font-size: 18px; font-weight: 700; }
+        .school-subtitle { font-size: 12px; color: #e0f2fe; margin-top: 2px; }
+        .config-panel { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; }
+        .input-group { display: flex; gap: 10px; }
+        .input-field { flex: 1; display: flex; flex-direction: column; }
+        .input-field label { font-size: 11px; color: #0284c7; font-weight: 700; margin-bottom: 4px; }
+        input[type="text"], input[type="password"] { background: #ffffff; border: 2px solid #cbd5e1; color: #0f172a; padding: 8px 10px; border-radius: 8px; font-size: 13px; font-weight: 600; outline: none; }
+        input:focus { border-color: #0284c7; }
+        .messages-container { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #f1f5f9; }
+        .message-card { background: #ffffff; border-radius: 10px; padding: 10px 12px; max-width: 85%; align-self: flex-start; border-left: 4px solid #ef4444; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .message-card.unlocked { border-left: 4px solid #10b981; background: #f0fdf4; }
+        .sender-tag { font-size: 11px; color: #475569; font-weight: 700; display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 10px; }
+        .status-badge { font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 700; }
         .badge-locked { background: #fee2e2; color: #dc2626; }
         .badge-unlocked { background: #dcfce7; color: #16a34a; }
-
-        .message-text {
-            font-size: 14px;
-            color: #0f172a;
-            font-weight: 600;
-            word-break: break-all;
-        }
-
-        .input-area {
-            padding: 12px;
-            background: #ffffff;
-            border-top: 2px solid #e2e8f0;
-            display: flex;
-            gap: 8px;
-        }
-
-        .message-input {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 20px;
-            background: #f8fafc;
-            border: 2px solid #cbd5e1;
-            color: #0f172a;
-            font-size: 13px;
-            outline: none;
-        }
-
-        .send-btn {
-            background: #0284c7;
-            color: white;
-            border: none;
-            padding: 0 18px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 13px;
-            cursor: pointer;
-        }
+        .message-text { font-size: 14px; color: #0f172a; font-weight: 600; word-break: break-all; }
+        .input-area { padding: 12px; background: #ffffff; border-top: 2px solid #e2e8f0; display: flex; gap: 8px; }
+        .message-input { flex: 1; padding: 10px 14px; border-radius: 20px; background: #f8fafc; border: 2px solid #cbd5e1; color: #0f172a; font-size: 13px; outline: none; }
+        .send-btn { background: #0284c7; color: white; border: none; padding: 0 18px; border-radius: 20px; font-weight: 700; font-size: 13px; cursor: pointer; }
     </style>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
 </head>
 <body>
 
@@ -202,8 +55,8 @@
     </div>
 
     <div class="messages-container" id="msgBox">
-        <div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 20px;">
-            લાઈવ સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
+        <div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 20px;" id="statusText">
+            સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
         </div>
     </div>
 
@@ -214,18 +67,22 @@
 </div>
 
 <script>
-    // Free Public Open WebSocket Server
-    const socket = io("https://pie-socket-free-server.glitch.me");
-
+    // Free Public Open MQTT Server (No Login Needed)
+    const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
+    const chatTopic = "bolas_school_crypto_live_chat_2026";
     let rawMessages = [];
 
-    socket.on("connect", () => {
-        document.getElementById('msgBox').innerHTML = '<div style="text-align: center; color: #16a34a; font-size: 13px; margin-top: 20px;">કનેક્શન સફળ! મેસેજ મોકલો...</div>';
+    client.on('connect', () => {
+        document.getElementById('statusText').innerText = "કનેક્શન સફળ! મેસેજ મોકલીને ચેટ ચાલુ કરો...";
+        client.subscribe(chatTopic);
     });
 
-    socket.on("chat-message", (data) => {
-        rawMessages.push(data);
-        renderAllMessages();
+    client.on('message', (topic, message) => {
+        try {
+            const dataObj = JSON.parse(message.toString());
+            rawMessages.push(dataObj);
+            renderAllMessages();
+        } catch (e) {}
     });
 
     function sendMessage() {
@@ -246,7 +103,7 @@
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
-        socket.emit("chat-message", msgObj);
+        client.publish(chatTopic, JSON.stringify(msgObj));
         document.getElementById('messageInput').value = '';
     }
 
