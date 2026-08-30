@@ -181,8 +181,10 @@
         }
     </style>
 
+    <!-- Crypto & Firebase Ready Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/peerjs@1.3.2/dist/peerjs.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -207,7 +209,7 @@
 
     <div class="messages-container" id="msgBox">
         <div style="text-align: center; color: #64748b; font-size: 13px; margin-top: 20px;">
-            લાઈવ ચેટ કનેક્ટ થઈ રહ્યું છે...
+            લાઈવ સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
         </div>
     </div>
 
@@ -218,33 +220,28 @@
 </div>
 
 <script>
-    const peer = new Peer('bolas_school_room_12345');
-    let connections = [];
+    // Ready Firebase Configuration
+    const firebaseConfig = {
+        databaseURL: "https://cripto-chat-demo-default-rtdb.asia-southeast1.firebasedatabase.app/"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const chatRef = database.ref("messages");
+
     let rawMessages = [];
 
-    peer.on('open', function(id) {
-        console.log('Connected');
+    // Listen to incoming messages in real-time
+    chatRef.on("value", (snapshot) => {
+        rawMessages = [];
+        const data = snapshot.val();
+        if (data) {
+            Object.keys(data).forEach((key) => {
+                rawMessages.push(data[key]);
+            });
+        }
+        renderAllMessages();
     });
-
-    peer.on('error', function(err) {
-        const clientPeer = new Peer();
-        clientPeer.on('open', function() {
-            const conn = clientPeer.connect('bolas_school_room_12345');
-            setupConnection(conn);
-        });
-    });
-
-    peer.on('connection', function(conn) {
-        connections.push(conn);
-        setupConnection(conn);
-    });
-
-    function setupConnection(conn) {
-        conn.on('data', function(data) {
-            rawMessages.push(data);
-            renderAllMessages();
-        });
-    }
 
     function sendMessage() {
         const user = document.getElementById('username').value.trim();
@@ -258,16 +255,11 @@
 
         const encryptedMsg = CryptoJS.AES.encrypt(msg, key).toString();
 
-        const dataObj = {
+        chatRef.push({
             sender: user,
             text: encryptedMsg,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        };
-
-        rawMessages.push(dataObj);
-        renderAllMessages();
-
-        connections.forEach(c => c.send(dataObj));
+        });
 
         document.getElementById('messageInput').value = '';
     }
