@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Full RSA Prime Math Cryptography Chat</title>
+    <title>RSA Prime Cryptography - Shree Bolas Primary School</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Vadodara:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; font-family: 'Hind Vadodara', sans-serif; margin: 0; padding: 0; }
@@ -11,10 +11,15 @@
         .chat-app { width: 100%; max-width: 520px; height: 96vh; background: #ffffff; border-radius: 16px; border: 2px solid #0284c7; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
         .app-header { background: #0284c7; color: #ffffff; padding: 10px; text-align: center; }
         .app-header h1 { font-size: 16px; font-weight: 700; }
-        .school-subtitle { font-size: 11px; color: #e0f2fe; margin-top: 1px; }
+        .school-subtitle { font-size: 11px; color: #e0f2fe; margin-top: 2px; font-weight: 600; }
         
         .math-box { background: #f0f9ff; border-bottom: 2px solid #0284c7; padding: 8px 12px; font-size: 11px; }
-        .math-title { font-weight: bold; color: #0369a1; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .math-title { font-weight: bold; color: #0369a1; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .prime-inputs { display: flex; gap: 8px; margin-bottom: 6px; background: #e0f2fe; padding: 6px; border-radius: 6px; }
+        .prime-inputs label { font-size: 10px; font-weight: bold; color: #0369a1; }
+        .prime-inputs input { width: 100%; padding: 4px; border: 1px solid #0284c7; border-radius: 4px; font-weight: bold; text-align: center; }
+
         .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: #ffffff; padding: 6px; border-radius: 6px; border: 1px solid #bae6fd; }
         .calc-item { font-size: 10px; font-weight: 600; color: #0f172a; }
         .calc-item span { color: #0284c7; font-weight: bold; }
@@ -47,22 +52,37 @@
 <div class="chat-app">
     <div class="app-header">
         <h1>🔢 FULL RSA PRIME CRYPTOGRAPHY</h1>
-        <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા - ગણિત વિજ્ઞાન પ્રોજેક્ટ</div>
+        <div class="school-subtitle">શ્રી બોળાસ પ્રાથમિક શાળા</div>
+        <div class="school-subtitle" style="color: #fef08a; margin-top: 1px;">માર્ગદર્શક શિક્ષક શ્રી વંશ જશુભાઈ બી.</div>
     </div>
 
     <!-- Math Calculation Display Box -->
     <div class="math-box">
         <div class="math-title">
-            <span>📐 RSA ગણિતીય ગણતરી બોક્સ:</span>
-            <button onclick="generateRandomPrimes()" style="background:#0284c7; color:white; border:none; padding:2px 6px; border-radius:4px; font-size:9px; cursor:pointer;">નવા Prime પસંદ કરો</button>
+            <span>📐 અવિભાજ્ય સંખ્યાઓ (Prime Inputs):</span>
+            <span id="primeWarning" style="color:#dc2626; font-size:9px;"></span>
         </div>
+        
+        <div class="prime-inputs">
+            <div style="flex:1;">
+                <label>અવિભાજ્ય P:</label>
+                <input type="number" id="inputP" value="61" oninput="updateRSAFromInput()">
+            </div>
+            <div style="flex:1;">
+                <label>અવિભાજ્ય Q:</label>
+                <input type="number" id="inputQ" value="53" oninput="updateRSAFromInput()">
+            </div>
+            <div style="flex:1;">
+                <label>Public Key (e):</label>
+                <input type="number" id="inputE" value="17" oninput="updateRSAFromInput()">
+            </div>
+        </div>
+
         <div class="calc-grid">
-            <div class="calc-item">અવિભાજ્ય P = <span id="valP">61</span></div>
-            <div class="calc-item">અવિભાજ્ય Q = <span id="valQ">53</span></div>
             <div class="calc-item">Public Key (N = P×Q) = <span id="valN">3233</span></div>
             <div class="calc-item">Euler Phi φ(N) = <span id="valPhi">3120</span></div>
-            <div class="calc-item">Public Encrypt Key (e) = <span id="valE">17</span></div>
             <div class="calc-item">Private Decrypt Key (d) = <span id="valD">2753</span></div>
+            <div class="calc-item" style="color:#16a34a;">Status: <span id="valStatus" style="color:#16a34a;">OK</span></div>
         </div>
     </div>
 
@@ -100,27 +120,66 @@
 
 <script>
     const client = mqtt.connect('wss://broker.emqx.io:8084/mqtt');
-    const chatTopic = "bolas_school_full_rsa_math_2026";
+    const chatTopic = "bolas_school_custom_prime_rsa_2026";
     
     let P = 61, Q = 53, N = 3233, Phi = 3120, e = 17, d = 2753;
     let rawMessages = [];
 
-    // Prime Pair List for RSA Demonstration
-    const primePairs = [
-        {p: 61, q: 53, e: 17},
-        {p: 61, q: 47, e: 17},
-        {p: 53, q: 47, e: 17},
-        {p: 71, q: 59, e: 17}
-    ];
+    function isPrime(num) {
+        if (num <= 1) return false;
+        if (num <= 3) return true;
+        if (num % 2 === 0 || num % 3 === 0) return false;
+        for (let i = 5; i * i <= num; i += 6) {
+            if (num % i === 0 || num % (i + 2) === 0) return false;
+        }
+        return true;
+    }
 
-    function calculateRSA(pVal, qVal, eVal) {
+    function gcd(a, b) {
+        while (b) {
+            let t = b;
+            b = a % b;
+            a = t;
+        }
+        return a;
+    }
+
+    function updateRSAFromInput() {
+        let pVal = parseInt(document.getElementById('inputP').value);
+        let qVal = parseInt(document.getElementById('inputQ').value);
+        let eVal = parseInt(document.getElementById('inputE').value);
+        let warningEl = document.getElementById('primeWarning');
+
+        if (!isPrime(pVal) || !isPrime(qVal)) {
+            warningEl.innerText = "⚠️ P અને Q અવિભાજ્ય હોવા જરૂરી છે!";
+            document.getElementById('valStatus').innerText = "ભૂલ";
+            document.getElementById('valStatus').style.color = "#dc2626";
+            return;
+        }
+
+        if (pVal === qVal) {
+            warningEl.innerText = "⚠️ P અને Q અલગ હોવા જોઈએ!";
+            document.getElementById('valStatus').innerText = "ભૂલ";
+            document.getElementById('valStatus').style.color = "#dc2626";
+            return;
+        }
+
         P = pVal;
         Q = qVal;
         N = P * Q;
         Phi = (P - 1) * (Q - 1);
-        e = eVal;
 
-        // Calculate Modular Multiplicative Inverse (Private Key d)
+        if (gcd(eVal, Phi) !== 1) {
+            warningEl.innerText = "⚠️ e અને φ(N) સહ-અવિભાજ્ય (Coprime) હોવા જોઈશે!";
+            document.getElementById('valStatus').innerText = "ભૂલ";
+            document.getElementById('valStatus').style.color = "#dc2626";
+            return;
+        }
+
+        e = eVal;
+        d = 0;
+
+        // Calculate Modular Multiplicative Inverse
         for (let i = 1; i < Phi; i++) {
             if ((i * e) % Phi === 1) {
                 d = i;
@@ -128,22 +187,20 @@
             }
         }
 
-        document.getElementById('valP').innerText = P;
-        document.getElementById('valQ').innerText = Q;
+        warningEl.innerText = "";
+        document.getElementById('valStatus').innerText = "ઓકે (Valid RSA)";
+        document.getElementById('valStatus').style.color = "#16a34a";
+
         document.getElementById('valN').innerText = N;
         document.getElementById('valPhi').innerText = Phi;
-        document.getElementById('valE').innerText = e;
         document.getElementById('valD').innerText = d;
         document.getElementById('publicNInput').value = N;
-    }
 
-    function generateRandomPrimes() {
-        const pair = primePairs[Math.floor(Math.random() * primePairs.length)];
-        calculateRSA(pair.p, pair.q, pair.e);
+        renderAllMessages();
     }
 
     // Initialize Math Parameters
-    calculateRSA(P, Q, e);
+    updateRSAFromInput();
 
     client.on('connect', () => {
         document.getElementById('statusText').innerText = "કનેક્શન સફળ! RSA મેથ્સ ડેમો માટે તૈયાર છે...";
@@ -158,7 +215,6 @@
         } catch (err) {}
     });
 
-    // Custom Power Mod for Big Numbers
     function powerMod(base, exp, mod) {
         let res = 1n;
         base = BigInt(base) % BigInt(mod);
@@ -187,7 +243,6 @@
             return;
         }
 
-        // RSA Encryption: Cipher = (Plaintext^e) mod N
         let encryptedCodes = [];
         for (let i = 0; i < msg.length; i++) {
             let charCode = msg.charCodeAt(i);
@@ -220,7 +275,6 @@
             let displayText = `[RSA Cipher Codes]: ${item.cipherText}`;
             let isUnlocked = false;
 
-            // RSA Decryption: Plaintext = (Cipher^d) mod N
             if (userD) {
                 try {
                     let cipherArray = item.cipherText.split("-");
