@@ -46,20 +46,17 @@
             overflow: hidden;
         }
 
-        /* Header Styling */
         .app-header {
             background: linear-gradient(90deg, #0f172a, #1e293b);
             padding: 12px 16px;
             text-align: center;
             border-bottom: 2px solid var(--border-color);
-            position: relative;
         }
 
         .app-header h1 {
             font-family: 'Orbitron', 'Hind Vadodara', sans-serif;
             font-size: 16px;
             color: #38bdf8;
-            letter-spacing: 0.5px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -73,7 +70,6 @@
             font-weight: 600;
         }
 
-        /* Control Panel / Keys Box */
         .config-panel {
             background: #0f172a;
             padding: 10px 14px;
@@ -99,7 +95,6 @@
             color: #38bdf8;
             font-weight: 700;
             margin-bottom: 2px;
-            text-transform: uppercase;
         }
 
         input[type="text"], input[type="password"] {
@@ -111,15 +106,12 @@
             font-size: 12px;
             font-weight: 600;
             outline: none;
-            transition: all 0.3s ease;
         }
 
         input:focus {
             border-color: var(--accent-blue);
-            box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
         }
 
-        /* Messages Body */
         .messages-container {
             flex: 1;
             padding: 12px;
@@ -138,8 +130,6 @@
             align-self: flex-start;
             border-left: 3px solid var(--accent-red);
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            position: relative;
-            animation: fadeIn 0.3s ease-in-out;
         }
 
         .message-card.unlocked {
@@ -171,10 +161,8 @@
             font-size: 13px;
             color: #f1f5f9;
             word-break: break-all;
-            line-height: 1.3;
         }
 
-        /* Footer Input Area */
         .input-area {
             padding: 10px 12px;
             background: #0f172a;
@@ -202,25 +190,12 @@
             font-weight: 700;
             font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(14, 165, 233, 0.4);
-            transition: transform 0.2s;
-        }
-
-        .send-btn:active {
-            transform: scale(0.95);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 
-    <!-- CryptoJS Lib -->
+    <!-- CryptoJS & PubNub Libs (Free Public Server) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <!-- Firebase Libs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.7.2.2.min.js"></script>
 </head>
 <body>
 
@@ -237,15 +212,15 @@
                 <input type="text" id="username" placeholder="દા.ત. જશુભાઈ">
             </div>
             <div class="input-field">
-                <label>Secret Key (મેસેજ અનલોક પિન):</label>
-                <input type="password" id="secretKey" placeholder="દા.ત. 1234" oninput="renderMessages()">
+                <label>Secret Key (મેસેજ પિન):</label>
+                <input type="password" id="secretKey" placeholder="દા.ત. 1234" oninput="renderAllMessages()">
             </div>
         </div>
     </div>
 
     <div class="messages-container" id="msgBox">
         <div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">
-            કનેક્શન થઈ રહ્યું છે... લાઈવ મેસેજ અહીં દેખાશે.
+            લાઈવ સર્વર સાથે કનેક્ટ થઈ રહ્યું છે...
         </div>
     </div>
 
@@ -256,35 +231,22 @@
 </div>
 
 <script>
-    // ⚠️ Firebase Config Setup
-    // ફાયરબેઝ કન્સોલમાંથી મળતી ડિટેલ્સ અહીં ઉમેરો
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_SENDER_ID",
-        appId: "YOUR_APP_ID"
-    };
-
-    // Firebase Initialize
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const chatRef = database.ref("crypto_messages");
+    // Ready-to-use Free Public Realtime Server
+    const pubnub = new PubNub({
+        subscribeKey: "sub-c-43a0e3f8-8422-11e9-a038-16e537e24683",
+        publishKey: "pub-c-69f8fa5d-9b16-43dd-96e0-25e8dd415b3a",
+        userId: "user_" + Math.random().toString(36).substring(7)
+    });
 
     let rawMessages = [];
 
-    // Realtime Database listener
-    chatRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        rawMessages = [];
-        if (data) {
-            Object.keys(data).forEach(key => {
-                rawMessages.push(data[key]);
-            });
+    pubnub.subscribe({ channels: ['bolas_school_crypto_chat'] });
+
+    pubnub.addListener({
+        message: function(event) {
+            rawMessages.push(event.message);
+            renderAllMessages();
         }
-        renderMessages();
     });
 
     function sendMessage() {
@@ -300,22 +262,25 @@
         // AES Encryption
         const encryptedMsg = CryptoJS.AES.encrypt(msg, key).toString();
 
-        chatRef.push({
-            sender: user,
-            text: encryptedMsg,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        pubnub.publish({
+            channel: 'bolas_school_crypto_chat',
+            message: {
+                sender: user,
+                text: encryptedMsg,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
         });
 
         document.getElementById('messageInput').value = '';
     }
 
-    function renderMessages() {
+    function renderAllMessages() {
         const key = document.getElementById('secretKey').value.trim();
         const box = document.getElementById('msgBox');
         box.innerHTML = '';
 
         if (rawMessages.length === 0) {
-            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">હજી સુધી કોઈ મેસેજ નથી આવ્યા...</div>';
+            box.innerHTML = '<div style="text-align: center; color: #64748b; font-size: 12px; margin-top: 20px;">મેસેજ મોકલીને લાઈવ ચેટ ચાલુ કરો...</div>';
             return;
         }
 
@@ -331,9 +296,7 @@
                         displayText = decrypted;
                         isUnlocked = true;
                     }
-                } catch (e) {
-                    // Lock status remains false
-                }
+                } catch (e) {}
             }
 
             const card = document.createElement('div');
